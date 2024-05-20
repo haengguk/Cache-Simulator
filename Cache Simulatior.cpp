@@ -4,171 +4,170 @@
 #include <string.h>
 #include <math.h>
 
-// Ä³½Ã ºí·Ï ±¸Á¶Ã¼
+// ìºì‹œ ë¸”ë¡ êµ¬ì¡°ì²´
 typedef struct {
-    unsigned int tag;              // ÅÂ±× (¸Ş¸ğ¸® ÁÖ¼ÒÀÇ ÀÏºÎ)
-    int valid;                     // À¯È¿ ºñÆ® (ÀÌ ºí·ÏÀÌ À¯È¿ÇÑÁö ¿©ºÎ)
-    int dirty;                     // ´õÆ¼ ºñÆ® (ÀÌ ºí·ÏÀÌ ¼öÁ¤µÇ¾ú´ÂÁö ¿©ºÎ)
-    unsigned long long lru_counter;// LRU Ä«¿îÅÍ (»ç¿ë ºóµµ ÃßÀû)
+    unsigned int tag;              // íƒœê·¸ (ë©”ëª¨ë¦¬ ì£¼ì†Œì˜ ì¼ë¶€)
+    int valid;                     // ìœ íš¨ ë¹„íŠ¸ (ì´ ë¸”ë¡ì´ ìœ íš¨í•œì§€ ì—¬ë¶€)
+    int dirty;                     // ë”í‹° ë¹„íŠ¸ (ì´ ë¸”ë¡ì´ ìˆ˜ì •ë˜ì—ˆëŠ”ì§€ ì—¬ë¶€)
+    unsigned long long lru_counter;// LRU ì¹´ìš´í„° (ì‚¬ìš© ë¹ˆë„ ì¶”ì )
 } CacheBlock;
 
-// Ä³½Ã ¼¼Æ® ±¸Á¶Ã¼
+// ìºì‹œ ì„¸íŠ¸ êµ¬ì¡°ì²´
 typedef struct {
-    CacheBlock* blocks;            // ¼¼Æ® ³»ÀÇ Ä³½Ã ºí·Ï ¹è¿­
+    CacheBlock* blocks;            // ì„¸íŠ¸ ë‚´ì˜ ìºì‹œ ë¸”ë¡ ë°°ì—´
 } CacheSet;
 
-// Ä³½Ã ±¸Á¶Ã¼
+// ìºì‹œ êµ¬ì¡°ì²´
 typedef struct {
-    CacheSet* sets;                // Ä³½Ã ¼¼Æ® ¹è¿­
-    int num_sets;                  // ¼¼Æ®ÀÇ ¼ö
-    int blocks_per_set;            // ¼¼Æ®´ç ºí·ÏÀÇ ¼ö
-    int bytes_per_block;           // ºí·Ï´ç ¹ÙÀÌÆ® ¼ö
-    int write_allocate;            // ¾²±â ÇÒ´ç ¿©ºÎ
-    int write_back;                // ¾²±â ¹é ¿©ºÎ
-    unsigned long long lru_counter;// ÀüÃ¼ LRU Ä«¿îÅÍ
+    CacheSet* sets;                // ìºì‹œ ì„¸íŠ¸ ë°°ì—´
+    int num_sets;                  // ì„¸íŠ¸ì˜ ìˆ˜
+    int blocks_per_set;            // ì„¸íŠ¸ë‹¹ ë¸”ë¡ì˜ ìˆ˜
+    int bytes_per_block;           // ë¸”ë¡ë‹¹ ë°”ì´íŠ¸ ìˆ˜
+    int write_allocate;            // write-allocate ì—¬ë¶€
+    int write_back;                // write-back ì—¬ë¶€
+    unsigned long long lru_counter;// ì „ì²´ LRU ì¹´ìš´í„°
 } Cache;
 
-// Ä³½Ã ÃÊ±âÈ­ ÇÔ¼ö
+// ìºì‹œ ì´ˆê¸°í™” í•¨ìˆ˜
 Cache* initialize_cache(int num_sets, int blocks_per_set, int bytes_per_block, int write_allocate, int write_back) {
-    Cache* cache = (Cache*)malloc(sizeof(Cache));      // Ä³½Ã ±¸Á¶Ã¼ ÇÒ´ç
-    cache->num_sets = num_sets;                        // ¼¼Æ®ÀÇ ¼ö ¼³Á¤
-    cache->blocks_per_set = blocks_per_set;            // ¼¼Æ®´ç ºí·ÏÀÇ ¼ö ¼³Á¤
-    cache->bytes_per_block = bytes_per_block;          // ºí·Ï´ç ¹ÙÀÌÆ® ¼ö ¼³Á¤
-    cache->write_allocate = write_allocate;            // ¾²±â ÇÒ´ç ¿©ºÎ ¼³Á¤
-    cache->write_back = write_back;                    // ¾²±â ¹é ¿©ºÎ ¼³Á¤
-    cache->lru_counter = 0;                            // LRU Ä«¿îÅÍ ÃÊ±âÈ­
-    cache->sets = (CacheSet*)malloc(num_sets * sizeof(CacheSet)); // Ä³½Ã ¼¼Æ® ¹è¿­ ÇÒ´ç
+    Cache* cache = (Cache*)malloc(sizeof(Cache));      // ìºì‹œ êµ¬ì¡°ì²´ í• ë‹¹
+    cache->num_sets = num_sets;                        
+    cache->blocks_per_set = blocks_per_set;            
+    cache->bytes_per_block = bytes_per_block;          
+    cache->write_allocate = write_allocate;            
+    cache->write_back = write_back;                    
+    cache->lru_counter = 0;                            // LRU ì¹´ìš´í„° ì´ˆê¸°í™”
+    cache->sets = (CacheSet*)malloc(num_sets * sizeof(CacheSet)); // ìºì‹œ ì„¸íŠ¸ ë°°ì—´ í• ë‹¹
 
     for (int i = 0; i < num_sets; i++) {
-        cache->sets[i].blocks = (CacheBlock*)malloc(blocks_per_set * sizeof(CacheBlock)); // °¢ ¼¼Æ®¿¡ ´ëÇØ Ä³½Ã ºí·Ï ¹è¿­ ÇÒ´ç
+        cache->sets[i].blocks = (CacheBlock*)malloc(blocks_per_set * sizeof(CacheBlock)); // ê° ì„¸íŠ¸ì— ëŒ€í•´ ìºì‹œ ë¸”ë¡ ë°°ì—´ í• ë‹¹
         for (int j = 0; j < blocks_per_set; j++) {
-            cache->sets[i].blocks[j].valid = 0;       // ºí·ÏÀÇ À¯È¿ ºñÆ® ÃÊ±âÈ­
-            cache->sets[i].blocks[j].dirty = 0;       // ºí·ÏÀÇ ´õÆ¼ ºñÆ® ÃÊ±âÈ­
-            cache->sets[i].blocks[j].lru_counter = 0; // ºí·ÏÀÇ LRU Ä«¿îÅÍ ÃÊ±âÈ­
+            cache->sets[i].blocks[j].valid = 0;       // ë¸”ë¡ì˜ ìœ íš¨ ë¹„íŠ¸ ì´ˆê¸°í™”
+            cache->sets[i].blocks[j].dirty = 0;       // ë¸”ë¡ì˜ ë”í‹° ë¹„íŠ¸ ì´ˆê¸°í™”
+            cache->sets[i].blocks[j].lru_counter = 0; // ë¸”ë¡ì˜ LRU ì¹´ìš´í„° ì´ˆê¸°í™”
         }
     }
-    return cache; // ÃÊ±âÈ­µÈ Ä³½Ã ¹İÈ¯
+    return cache; // ì´ˆê¸°í™”ëœ ìºì‹œ ë°˜í™˜
 }
 
-// Ä³½Ã ¸Ş¸ğ¸® ÇØÁ¦ ÇÔ¼ö
+// ìºì‹œ ë©”ëª¨ë¦¬ í•´ì œ í•¨ìˆ˜
 void free_cache(Cache* cache) {
     for (int i = 0; i < cache->num_sets; i++) {
-        free(cache->sets[i].blocks); // °¢ ¼¼Æ®ÀÇ ºí·Ï ¸Ş¸ğ¸® ÇØÁ¦
+        free(cache->sets[i].blocks); // ê° ì„¸íŠ¸ì˜ ë¸”ë¡ ë©”ëª¨ë¦¬ í•´ì œ
     }
-    free(cache->sets); // ¼¼Æ® ¹è¿­ ¸Ş¸ğ¸® ÇØÁ¦
-    free(cache); // Ä³½Ã ±¸Á¶Ã¼ ¸Ş¸ğ¸® ÇØÁ¦
+    free(cache->sets); // ì„¸íŠ¸ ë°°ì—´ ë©”ëª¨ë¦¬ í•´ì œ
+    free(cache); // ìºì‹œ êµ¬ì¡°ì²´ ë©”ëª¨ë¦¬ í•´ì œ
 }
 
-// ÁÖ¼Ò¿¡¼­ ÅÂ±×¿Í ¼¼Æ® ÀÎµ¦½º¸¦ ÃßÃâÇÏ´Â ÇÔ¼ö
+// ì£¼ì†Œì—ì„œ íƒœê·¸ì™€ ì„¸íŠ¸ ì¸ë±ìŠ¤ë¥¼ ì¶”ì¶œí•˜ëŠ” í•¨ìˆ˜
 void get_tag_and_set(Cache* cache, unsigned int address, unsigned int* tag, unsigned int* set_index) {
-    int block_offset_bits = (int)log2(cache->bytes_per_block); // ºí·Ï ¿ÀÇÁ¼Â ºñÆ® ¼ö °è»ê
-    int set_index_bits = (int)log2(cache->num_sets);           // ¼¼Æ® ÀÎµ¦½º ºñÆ® ¼ö °è»ê
-    *set_index = (address >> block_offset_bits) & (cache->num_sets - 1); // ¼¼Æ® ÀÎµ¦½º ÃßÃâ
-    *tag = address >> (block_offset_bits + set_index_bits);    // ÅÂ±× ÃßÃâ
+    int block_offset_bits = (int)log2(cache->bytes_per_block); // ë¸”ë¡ ì˜¤í”„ì…‹ ë¹„íŠ¸ ìˆ˜ ê³„ì‚°
+    int set_index_bits = (int)log2(cache->num_sets);           // ì„¸íŠ¸ ì¸ë±ìŠ¤ ë¹„íŠ¸ ìˆ˜ ê³„ì‚°
+    *set_index = (address >> block_offset_bits) & (cache->num_sets - 1); // ì„¸íŠ¸ ì¸ë±ìŠ¤ ì¶”ì¶œ
+    *tag = address >> (block_offset_bits + set_index_bits);    // íƒœê·¸ ì¶”ì¶œ
 }
 
-// Ä³½Ã¿¡ Á¢±ÙÇÏ´Â ÇÔ¼ö
+// ìºì‹œì— ì ‘ê·¼í•˜ëŠ” í•¨ìˆ˜
 int access_cache(Cache* cache, char type, unsigned int address, int* load_hits, int* load_misses, int* store_hits, int* store_misses, unsigned long long* total_cycles) {
     unsigned int tag, set_index;
-    get_tag_and_set(cache, address, &tag, &set_index); // ÁÖ¼Ò¿¡¼­ ÅÂ±×¿Í ¼¼Æ® ÀÎµ¦½º ÃßÃâ
-    CacheSet* set = &cache->sets[set_index];           // ÇØ´ç ¼¼Æ® ÂüÁ¶
-    cache->lru_counter++;                              // ÀüÃ¼ LRU Ä«¿îÅÍ Áõ°¡
+    get_tag_and_set(cache, address, &tag, &set_index); // ì£¼ì†Œì—ì„œ íƒœê·¸ì™€ ì„¸íŠ¸ ì¸ë±ìŠ¤ ì¶”ì¶œ
+    CacheSet* set = &cache->sets[set_index];           // í•´ë‹¹ ì„¸íŠ¸ ì°¸ì¡°
+    cache->lru_counter++;                              // ì „ì²´ LRU ì¹´ìš´í„° ì¦ê°€
 
-    // Ä³½Ã ºí·Ï Å½»ö
+    // ìºì‹œ ë¸”ë¡ íƒìƒ‰
     for (int i = 0; i < cache->blocks_per_set; i++) {
-        if (set->blocks[i].valid && set->blocks[i].tag == tag) { // À¯È¿ÇÏ°í ÅÂ±×°¡ ÀÏÄ¡ÇÏ´Â ºí·ÏÀ» Ã£À½
-            set->blocks[i].lru_counter = cache->lru_counter;     // LRU Ä«¿îÅÍ °»½Å
+        if (set->blocks[i].valid && set->blocks[i].tag == tag) { // ìœ íš¨í•˜ê³  íƒœê·¸ê°€ ì¼ì¹˜í•˜ëŠ” ë¸”ë¡ì„ ì°¾ìŒ
+            set->blocks[i].lru_counter = cache->lru_counter;     // LRU ì¹´ìš´í„° ê°±ì‹ 
             if (type == 'l') {
-                (*load_hits)++;      // ·Îµå È÷Æ® Áõ°¡
-                *total_cycles += 1;  // ·Îµå »çÀÌÅ¬ Áõ°¡
+                (*load_hits)++;      // ë¡œë“œ íˆíŠ¸ ì¦ê°€
+                *total_cycles += 1;  // ë¡œë“œ ì‚¬ì´í´ ì¦ê°€
             }
             else if (type == 's') {
-                set->blocks[i].dirty = 1; // ´õÆ¼ ºñÆ® ¼³Á¤
-                (*store_hits)++;          // ½ºÅä¾î È÷Æ® Áõ°¡
-                *total_cycles += 1;       // ½ºÅä¾î »çÀÌÅ¬ Áõ°¡
+                set->blocks[i].dirty = 1; // ë”í‹° ë¹„íŠ¸ ì„¤ì •
+                (*store_hits)++;          // ìŠ¤í† ì–´ íˆíŠ¸ ì¦ê°€
+                *total_cycles += 1;       // ìŠ¤í† ì–´ ì‚¬ì´í´ ì¦ê°€
             }
-            return 1; // Ä³½Ã È÷Æ® ¹İÈ¯
+            return 1; // ìºì‹œ íˆíŠ¸ ë°˜í™˜
         }
     }
 
-    // ¹Ì½º Ã³¸®
+    // ë¯¸ìŠ¤ ì²˜ë¦¬
     if (type == 'l') {
-        (*load_misses)++;                 // ·Îµå ¹Ì½º Áõ°¡
-        *total_cycles += 100 * (cache->bytes_per_block / 4); // ¸Ş¸ğ¸® Á¢±Ù »çÀÌÅ¬ Áõ°¡
+        (*load_misses)++;                 // ë¡œë“œ ë¯¸ìŠ¤ ì¦ê°€
+        *total_cycles += 100 * (cache->bytes_per_block / 4); // ë©”ëª¨ë¦¬ ì ‘ê·¼ ì‚¬ì´í´ ì¦ê°€
     }
     else if (type == 's') {
-        (*store_misses)++;                // ½ºÅä¾î ¹Ì½º Áõ°¡
-        *total_cycles += 100 * (cache->bytes_per_block / 4); // ¸Ş¸ğ¸® Á¢±Ù »çÀÌÅ¬ Áõ°¡
+        (*store_misses)++;                // ìŠ¤í† ì–´ ë¯¸ìŠ¤ ì¦ê°€
+        *total_cycles += 100 * (cache->bytes_per_block / 4); // ë©”ëª¨ë¦¬ ì ‘ê·¼ ì‚¬ì´í´ ì¦ê°€
     }
 
-    int lru_index = 0; // LRU ÀÎµ¦½º ÃÊ±âÈ­
-    unsigned long long min_lru = set->blocks[0].lru_counter; // ÃÖ¼Ò LRU °ª ÃÊ±âÈ­
+    int lru_index = 0; // LRU ì¸ë±ìŠ¤ ì´ˆê¸°í™”
+    unsigned long long min_lru = set->blocks[0].lru_counter; // ìµœì†Œ LRU ê°’ ì´ˆê¸°í™”
 
     for (int i = 1; i < cache->blocks_per_set; i++) {
-        if (!set->blocks[i].valid) { // À¯È¿ÇÏÁö ¾ÊÀº ºí·ÏÀÌ ÀÖÀ¸¸é ±³Ã¼ ´ë»óÀ¸·Î ¼±ÅÃ
+        if (!set->blocks[i].valid) { // ìœ íš¨í•˜ì§€ ì•Šì€ ë¸”ë¡ì´ ìˆìœ¼ë©´ êµì²´ ëŒ€ìƒìœ¼ë¡œ ì„ íƒ
             lru_index = i;
             break;
         }
-        if (set->blocks[i].lru_counter < min_lru) { // LRU °ªÀÌ ´õ ÀÛÀº ºí·ÏÀ» Ã£À½
+        if (set->blocks[i].lru_counter < min_lru) { // LRU ê°’ì´ ë” ì‘ì€ ë¸”ë¡ì„ ì°¾ìŒ
             lru_index = i;
             min_lru = set->blocks[i].lru_counter;
         }
     }
 
-    if (set->blocks[lru_index].valid && set->blocks[lru_index].dirty && cache->write_back) { // ±³Ã¼ÇÒ ºí·ÏÀÌ À¯È¿ÇÏ°í ´õÆ¼ ºñÆ®°¡ ¼³Á¤µÇ¾î ÀÖÀ¸¸ç write-back ¸ğµåÀÏ ¶§
-        *total_cycles += 100 * (cache->bytes_per_block / 4); // ¸Ş¸ğ¸®·Î ¾²±â ¹é »çÀÌÅ¬ Áõ°¡
+    if (set->blocks[lru_index].valid && set->blocks[lru_index].dirty && cache->write_back) { // êµì²´í•  ë¸”ë¡ì´ ìœ íš¨í•˜ê³  ë”í‹° ë¹„íŠ¸ê°€ ì„¤ì •ë˜ì–´ ìˆìœ¼ë©° write-back ëª¨ë“œì¼ ë•Œ
+        *total_cycles += 100 * (cache->bytes_per_block / 4); // ë©”ëª¨ë¦¬ë¡œ write-back ì‚¬ì´í´ ì¦ê°€
     }
 
-    set->blocks[lru_index].valid = 1;          // ±³Ã¼ÇÒ ºí·ÏÀ» À¯È¿ÇÏ°Ô ¼³Á¤
-    set->blocks[lru_index].tag = tag;          // »õ·Î¿î ÅÂ±× ¼³Á¤
-    set->blocks[lru_index].dirty = (type == 's'); // ½ºÅä¾îÀÏ °æ¿ì ´õÆ¼ ºñÆ® ¼³Á¤
-    set->blocks[lru_index].lru_counter = cache->lru_counter; // LRU Ä«¿îÅÍ °»½Å
+    set->blocks[lru_index].valid = 1;          // êµì²´í•  ë¸”ë¡ì„ ìœ íš¨í•˜ê²Œ ì„¤ì •
+    set->blocks[lru_index].tag = tag;          // ìƒˆë¡œìš´ íƒœê·¸ ì„¤ì •
+    set->blocks[lru_index].dirty = (type == 's'); // ìŠ¤í† ì–´ì¼ ê²½ìš° ë”í‹° ë¹„íŠ¸ ì„¤ì •
+    set->blocks[lru_index].lru_counter = cache->lru_counter; // LRU ì¹´ìš´í„° ê°±ì‹ 
 
-    if (type == 's' && !cache->write_allocate) { // ¾²±â ÇÒ´çÀÌ ¾Æ´Ñ °æ¿ì
-        set->blocks[lru_index].valid = 0; // ºí·ÏÀ» ¹«È¿È­
+    if (type == 's' && !cache->write_allocate) { // write í• ë‹¹ì´ ì•„ë‹Œ ê²½ìš°
+        set->blocks[lru_index].valid = 0; // ë¸”ë¡ì„ ë¬´íš¨í™”
     }
 
-    return 0; // Ä³½Ã ¹Ì½º ¹İÈ¯
+    return 0; // ìºì‹œ ë¯¸ìŠ¤ ë°˜í™˜
 }
 
 int main() {
-    int num_sets = 256;           // ¼¼Æ®ÀÇ ¼ö
-    int blocks_per_set = 4;       // ¼¼Æ®´ç ºí·ÏÀÇ ¼ö
-    int bytes_per_block = 16;     // ºí·Ï´ç ¹ÙÀÌÆ® ¼ö
-    int write_allocate = 1;       // ¾²±â ÇÒ´ç ¸ğµå (1: write-allocate)
-    int write_back = 1;           // ¾²±â ¹é ¸ğµå (1: write-back)
-    const char* tracefile = "gcc.trace"; // ¸Ş¸ğ¸® Á¢±Ù Æ®·¹ÀÌ½º ÆÄÀÏ
+    int num_sets = 256;           
+    int blocks_per_set = 4;       
+    int bytes_per_block = 16;     
+    int write_allocate = 1;       
+    int write_back = 1;           
+    const char* tracefile = "gcc.trace"; 
 
-    Cache* cache = initialize_cache(num_sets, blocks_per_set, bytes_per_block, write_allocate, write_back); // Ä³½Ã ÃÊ±âÈ­
+    Cache* cache = initialize_cache(num_sets, blocks_per_set, bytes_per_block, write_allocate, write_back); // ìºì‹œ ì´ˆê¸°í™”
 
-    FILE* file = fopen(tracefile, "r"); // Æ®·¹ÀÌ½º ÆÄÀÏ ¿­±â
-    if (file == NULL) {                 // ÆÄÀÏ ¿­±â ¿À·ù Ã³¸®
+    FILE* file = fopen(tracefile, "r"); // íŠ¸ë ˆì´ìŠ¤ íŒŒì¼ ì—´ê¸°
+    if (file == NULL) {                 // íŒŒì¼ ì—´ê¸° ì˜¤ë¥˜ ì²˜ë¦¬
         fprintf(stderr, "Error: Unable to open file %s\n", tracefile);
-        free_cache(cache);              // Ä³½Ã ¸Ş¸ğ¸® ÇØÁ¦
+        free_cache(cache);              // ìºì‹œ ë©”ëª¨ë¦¬ í•´ì œ
         return 1;
     }
 
-    char type;             // Á¢±Ù Å¸ÀÔ (·Îµå ¶Ç´Â ½ºÅä¾î)
-    unsigned int address;  // ¸Ş¸ğ¸® ÁÖ¼Ò
-    int result;            // °á°ú (»ç¿ëÇÏÁö ¾ÊÀ½)
-    int load_hits = 0, load_misses = 0; // ·Îµå È÷Æ® ¹× ¹Ì½º Ä«¿îÆ®
-    int store_hits = 0, store_misses = 0; // ½ºÅä¾î È÷Æ® ¹× ¹Ì½º Ä«¿îÆ®
-    unsigned long long total_cycles = 0; // ÃÑ »çÀÌÅ¬ ¼ö
-    int total_loads = 0, total_stores = 0; // ÃÑ ·Îµå ¹× ½ºÅä¾î ¼ö
+    char type;             // ì ‘ê·¼ íƒ€ì… (Load ë˜ëŠ” Store)
+    unsigned int address;  // ë©”ëª¨ë¦¬ ì£¼ì†Œ
+    int result;            
+    int load_hits = 0, load_misses = 0; 
+    int store_hits = 0, store_misses = 0; 
+    unsigned long long total_cycles = 0; 
+    int total_loads = 0, total_stores = 0; 
 
-    while (fscanf(file, " %c %x %d", &type, &address, &result) == 3) { // Æ®·¹ÀÌ½º ÆÄÀÏ¿¡¼­ ÇÑ ÁÙ¾¿ ÀĞ±â
-        if (type == 'l') {         // ·ÎµåÀÏ °æ¿ì
+    while (fscanf(file, " %c %x %d", &type, &address, &result) == 3) { // íŠ¸ë ˆì´ìŠ¤ íŒŒì¼ì—ì„œ í•œ ì¤„ì”© ì½ê¸°
+        if (type == 'l') {         // ë¡œë“œì¼ ê²½ìš°
             total_loads++;
         }
-        else if (type == 's') {  // ½ºÅä¾îÀÏ °æ¿ì
+        else if (type == 's') {  // ìŠ¤í† ì–´ì¼ ê²½ìš°
             total_stores++;
         }
-        access_cache(cache, type, address, &load_hits, &load_misses, &store_hits, &store_misses, &total_cycles); // Ä³½Ã Á¢±Ù
+        access_cache(cache, type, address, &load_hits, &load_misses, &store_hits, &store_misses, &total_cycles); // ìºì‹œ ì ‘ê·¼
     }
 
-    fclose(file); // Æ®·¹ÀÌ½º ÆÄÀÏ ´İ±â
+    fclose(file); // íŠ¸ë ˆì´ìŠ¤ íŒŒì¼ ë‹«ê¸°
 
-    // °á°ú Ãâ·Â
     printf("Total loads: %d\n", total_loads);
     printf("Total stores: %d\n", total_stores);
     printf("Load hits: %d\n", load_hits);
@@ -177,7 +176,7 @@ int main() {
     printf("Store misses: %d\n", store_misses);
     printf("Total cycles: %llu\n", total_cycles);
 
-    free_cache(cache); // Ä³½Ã ¸Ş¸ğ¸® ÇØÁ¦
+    free_cache(cache); // ìºì‹œ ë©”ëª¨ë¦¬ í•´ì œ
     return 0;
 }
 
